@@ -37,7 +37,7 @@ public class SudokuChecker {
 		// determine if solution works
 
 		validateGrid();
-		System.err.println("grid is valid");
+		System.out.println("grid is valid");
 
 	}
 
@@ -80,17 +80,14 @@ public class SudokuChecker {
 		}
 
 		// make sure grid is square
-		try {
-			assert (rowCnt == N);
-		} catch (AssertionError ae) {
+		if (rowCnt != N) {
 			System.err.println("grid columns not equal to grid rows");
 			System.exit(0);
 		}
 
 		// make sure grid size has integer square root
-		try {
-			assert (Math.sqrt(N) % 1.0 == 0.0);
-		} catch (AssertionError ae) {
+
+		if (Math.sqrt(N) % 1.0 != 0.0) {
 			System.err.println("grid columns not equal to grid rows");
 			System.exit(0);
 		}
@@ -103,64 +100,81 @@ public class SudokuChecker {
 
 		// loop through rows
 
-		for (int i = 0; i < N; i++) {
-			boolean[] bitBucket = new boolean[N];
-			int rowSum = 0;
-			for (int j = 0; j < N; j++) {
-				try {
-					assert (grid[i][j] <= N && grid[i][j] >= 0);
-				} catch (AssertionError ae) {
-					System.err.println("value is out of range row: " + i
-							+ " col: " + j + " value: " + grid[i][j]);
+		rowByRowChecker().validate();
+		columnByColumnChecker().validate();
 
-				}
-				try {
-					int cellValue = grid[i][j];
-					assert (!bitBucket[cellValue - 1]);
+	}
+
+	public SukokuChecker rowByRowChecker() {
+		return new RowByRowChecker();
+	}
+
+	public SukokuChecker columnByColumnChecker() {
+		return new ColumnByColumnChecker();
+	}
+
+	// an iterator, doesn't implement remove() since it's optional
+
+	private abstract class SukokuChecker {
+
+		protected int i, j;
+
+		protected abstract Integer nextElement();
+
+		public void validate() {
+
+			for (i = 0; i < N; i++) {
+				
+				int total = 0;
+				boolean[] bitBucket = new boolean[N];
+				
+				for (j = 0; j < N; j++) {
+
+					Integer cellValue = nextElement();
+
+					if (cellValue > N || cellValue <= 0) {
+						System.err.println("value is out of range: "
+								+ cellValue);
+						throw new RuntimeException("value is out of range: "
+								+ cellValue);
+					}
+
+					if (bitBucket[cellValue - 1]) {
+						System.err.println("value is repeated: " + cellValue);
+						throw new RuntimeException("value is repeated: "
+								+ cellValue);
+					}
+
 					bitBucket[cellValue - 1] = true;
-					rowSum = rowSum + grid[i][j];
 
-				} catch (AssertionError ae) {
-					System.err.println("value is repeated at row: " + i
-							+ " col: " + j + " value: " + grid[i][j]);
-
+					total = total + cellValue;
 				}
-			}
-			try {
-				assert (rowSum == targetSum);
-			} catch (AssertionError ae) {
-				System.err.println("row sum incorrect row: " + i + " sum: "
-						+ rowSum + " target sum: " + targetSum);
-
+				
+				if (total != targetSum) {
+					System.err.println("row sum incorrect sum: " + total
+							+ " target sum: " + targetSum);
+					throw new RuntimeException("row sum incorrect sum: " + total
+							+ " target sum: " + targetSum);
+				}
 			}
 
 		}
+	}
 
-		for (int i = 0; i < N; i++) {
-			boolean[] bitBucket = new boolean[N];
-			int colSum = 0;
-			for (int j = 0; j < N; j++) {
-				try {
-					int cellValue = grid[j][i];
-					assert (!bitBucket[cellValue - 1]);
-					bitBucket[cellValue - 1] = true;
-					colSum = colSum + grid[j][i];
+	private class ColumnByColumnChecker extends SukokuChecker {
 
-				} catch (AssertionError ae) {
-					System.err.println("value is repeated at row: " + j
-							+ " col: " + i + " value: " + grid[j][i]);
-
-				}
-			}
-			try {
-				assert (colSum == targetSum);
-			} catch (AssertionError ae) {
-				System.err.println("col sum incorrect col: " + i + " sum: "
-						+ colSum + " target sum: " + targetSum);
-
-			}
-
+		protected Integer nextElement() {
+			return new Integer(grid[j][i]);
 		}
+
+	}
+
+	private class RowByRowChecker extends SukokuChecker {
+
+		protected Integer nextElement() {
+			return new Integer(grid[i][j]);
+		}
+
 	}
 
 }
