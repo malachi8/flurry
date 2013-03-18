@@ -2,6 +2,8 @@ package com.flurry.interview;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
 
@@ -23,7 +25,8 @@ public class SudokuChecker {
 
 	public void check(String fileName) {
 		try {
-			inputGrid(fileName);
+			validateGrid(inputGrid(fileName));			
+			
 
 		} catch (IOException ioe) {
 			System.err.println("Could not open " + fileName);
@@ -35,10 +38,18 @@ public class SudokuChecker {
 
 		// grid is of proper size
 		// determine if solution works
+		
 
-		validateGrid();
-		System.out.println("grid is valid");
-
+	}
+	
+	public void validateGrid(List<String> records) {
+		try {
+			acceptGrid(records);
+			validateGrid();
+			System.out.println("grid is valid");
+		} catch (Exception e) {
+			System.err.println("Exception occured " + e.getMessage());
+		}
 	}
 
 	public String readAll() {
@@ -51,7 +62,7 @@ public class SudokuChecker {
 		return scanner.useDelimiter("\\s+").next();
 	}
 
-	private void inputGrid(String fileName) throws Exception {
+	private List<String> inputGrid(String fileName) throws Exception {
 
 		File file = new File(fileName);
 		if (file.exists()) {
@@ -59,9 +70,18 @@ public class SudokuChecker {
 			scanner.useLocale(usLocale);
 		}
 
-		int rowCnt = 0;
+		List<String> records = new ArrayList<String>();
 		while (scanner.hasNext()) {
-			String[] fields = readAll().trim().split(",");
+			records.add(readAll());
+		}
+
+		return records;
+	}
+	
+	private void acceptGrid(List<String> records) {
+		int rowCnt = 0;
+		for (String record : records) {
+			String[] fields = record.trim().split(",");
 			if (N == 0) {
 				N = fields.length;
 				grid = new int[N][N];
@@ -81,19 +101,18 @@ public class SudokuChecker {
 
 		// make sure grid is square
 		if (rowCnt != N) {
-			System.err.println("grid columns not equal to grid rows");
-			System.exit(0);
+			throw new RuntimeException("grid columns not equal to grid rows");
+			
 		}
 
 		// make sure grid size has integer square root
 
 		if (Math.sqrt(N) % 1.0 != 0.0) {
-			System.err.println("grid columns not equal to grid rows");
-			System.exit(0);
+			throw new RuntimeException("grid columns not equal to grid rows");
+			
 		}
 
 		targetSum = (N) * (N + 1) / 2;
-
 	}
 
 	private void validateGrid() {
