@@ -20,14 +20,14 @@ public class SudokuChecker {
 	public static void main(String[] args) {
 
 		SudokuChecker sudokuChecker = new SudokuChecker();
-		sudokuChecker.check(args[0]);
+		if(sudokuChecker.check(args[0]))
+			System.out.println("grid is valid");
+		
 	}
 
-	public void check(String fileName) {
+	public boolean check(String fileName) {
 		try {
-			validateGrid(inputGrid(fileName));			
-			
-
+			return validateGrid(inputGrid(fileName));			
 		} catch (IOException ioe) {
 			System.err.println("Could not open " + fileName);
 		} catch (NumberFormatException nfe) {
@@ -35,20 +35,21 @@ public class SudokuChecker {
 		} catch (Exception e) {
 			System.err.println("Exception occured " + e.getMessage());
 		}
-
+		return false;
 		// grid is of proper size
 		// determine if solution works
 		
 
 	}
 	
-	public void validateGrid(List<String> records) {
+	public boolean validateGrid(List<String> records) {
 		try {
 			acceptGrid(records);
-			validateGrid();
-			System.out.println("grid is valid");
+			return validateGrid();
+			
 		} catch (Exception e) {
 			System.err.println("Exception occured " + e.getMessage());
+			return false;
 		}
 	}
 
@@ -94,7 +95,11 @@ public class SudokuChecker {
 			}
 			int colCnt = 0;
 			for (String field : fields) {
-				grid[rowCnt][colCnt++] = Integer.parseInt(field);
+				int iField = Integer.parseInt(field);
+				if(iField == 0 || iField > N){
+					throw new RuntimeException("Invalid value: " + iField);
+				}
+				grid[rowCnt][colCnt++] = iField;
 			}
 			rowCnt++;
 		}
@@ -115,13 +120,11 @@ public class SudokuChecker {
 		targetSum = (N) * (N + 1) / 2;
 	}
 
-	private void validateGrid() {
+	private boolean validateGrid() {
 
-		// loop through rows
-
-		rowByRowChecker().validate();
-		columnByColumnChecker().validate();
-
+		return rowByRowChecker().validate() &&
+				columnByColumnChecker().validate();
+		
 	}
 
 	public SukokuChecker rowByRowChecker() {
@@ -140,7 +143,7 @@ public class SudokuChecker {
 
 		protected abstract Integer nextElement();
 
-		public void validate() {
+		public boolean validate() {
 
 			for (i = 0; i < N; i++) {
 				
@@ -154,14 +157,12 @@ public class SudokuChecker {
 					if (cellValue > N || cellValue <= 0) {
 						System.err.println("value is out of range: "
 								+ cellValue);
-						throw new RuntimeException("value is out of range: "
-								+ cellValue);
+						return false;
 					}
 
 					if (bitBucket[cellValue - 1]) {
 						System.err.println("value is repeated: " + cellValue);
-						throw new RuntimeException("value is repeated: "
-								+ cellValue);
+						return false;
 					}
 
 					bitBucket[cellValue - 1] = true;
@@ -172,12 +173,12 @@ public class SudokuChecker {
 				if (total != targetSum) {
 					System.err.println("row sum incorrect sum: " + total
 							+ " target sum: " + targetSum);
-					throw new RuntimeException("row sum incorrect sum: " + total
-							+ " target sum: " + targetSum);
+					return false;
 				}
 			}
-
+			return true;
 		}
+		
 	}
 
 	private class ColumnByColumnChecker extends SukokuChecker {
