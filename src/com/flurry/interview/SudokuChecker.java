@@ -36,9 +36,6 @@ public class SudokuChecker {
 			System.err.println("Exception occured " + e.getMessage());
 		}
 		return false;
-		// grid is of proper size
-		// determine if solution works
-		
 
 	}
 	
@@ -53,16 +50,20 @@ public class SudokuChecker {
 		}
 	}
 
+	/*
+	 * read each line from file
+	 */
 	public String readAll() {
 		if (!scanner.hasNextLine()) {
 			return null;
 		}
 
-		// reference:
-		// http://weblogs.java.net/blog/pat/archive/2004/10/stupid_scanner_1.html
 		return scanner.useDelimiter("\\s+").next();
 	}
 
+	/*
+	 * process input file consisting of comma spearated ints
+	 */
 	private List<String> inputGrid(String fileName) throws Exception {
 
 		File file = new File(fileName);
@@ -79,6 +80,10 @@ public class SudokuChecker {
 		return records;
 	}
 	
+	/*
+	 * validate that each record contains a collection of
+	 * ints separated by commas. Insure that grid is of correct proportions.
+	 */
 	private void acceptGrid(List<String> records) throws Exception {
 		int rowCnt = 0;
 		for (String record : records) {
@@ -120,6 +125,9 @@ public class SudokuChecker {
 		targetSum = (N) * (N + 1) / 2;
 	}
 
+	/*
+	 * validate the grid row by row and col by col
+	 */
 	private void validateGrid() throws Exception {
 
 		rowByRowChecker().validate();
@@ -136,7 +144,6 @@ public class SudokuChecker {
 		return new ColumnByColumnChecker();
 	}
 
-	// an iterator, doesn't implement remove() since it's optional
 
 	private abstract class SukokuChecker {
 
@@ -144,6 +151,10 @@ public class SudokuChecker {
 
 		protected abstract Integer nextElement();
 
+		/*
+		 * loop thru the grid insuring that the numbers
+		 * are unique and total correctly
+		 */
 		private void validate() throws Exception{
 
 			for (i = 0; i < N; i++) {
@@ -154,12 +165,6 @@ public class SudokuChecker {
 				for (j = 0; j < N; j++) {
 
 					Integer cellValue = nextElement();
-
-					if (cellValue > N || cellValue <= 0) {
-						throw new Exception("value is out of range: "
-								+ cellValue);
-						
-					}
 
 					if (bitBucket[cellValue - 1]) {
 						throw new Exception("value is repeated: " + cellValue);
